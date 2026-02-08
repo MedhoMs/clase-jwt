@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Auth - Sistema de Autenticación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #161616;
+            --bg-tertiary: #1f1f1f;
+            --accent: #00ff9f;
+            --accent-dim: #00cc7f;
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --border: #2a2a2a;
+            --error: #ff4757;
+            --success: #00ff9f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Decorative background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0, 255, 159, 0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 255, 159, 0.02) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: pulse 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--bg-primary);
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.01em;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-primary);
+        }
+
+        input::placeholder {
+            color: #4a4a4a;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .btn:hover {
+            background: var(--accent-dim);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: var(--error);
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 159, 0.1);
+            border: 1px solid rgba(0, 255, 159, 0.3);
+            color: var(--success);
+        }
+
+        .token-display {
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .token-display h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .token-content {
+            background: var(--bg-primary);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            word-break: break-all;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .copy-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .copy-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .user-info {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .user-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .user-info-value {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .test-credentials {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .test-credentials h4 {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .test-credentials code {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--bg-primary);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 28px 24px;
+            }
+
+            .header {
+                margin-bottom: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">JWT</div>
+                <span class="logo-text">Auth System</span>
+            </div>
+            <p>Sistema de autenticación seguro con JSON Web Tokens</p>
+        </div>
+
+        <div class="card">
+            <div id="alert-container"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="usuario@ejemplo.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="••••••••"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn" id="loginBtn">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="test-credentials">
+                <h4>Credenciales de prueba</h4>
+                <p>Email: <code>user@test.com</code></p>
+                <p>Contraseña: <code>123456</code></p>
+            </div>
+
+            <div id="tokenDisplay" style="display: none;">
+                <div class="token-display">
+                    <h3>Token JWT Generado</h3>
+                    <div class="token-content" id="tokenContent"></div>
+                    <button class="copy-btn" onclick="copyToken()">
+                        📋 Copiar Token
+                    </button>
+                </div>
+
+                <div class="user-info" id="userInfo"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la API - CAMBIAR ESTO A TU URL DE LARAVEL
+        const API_URL = 'http://localhost:8000/api';
+
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const alertContainer = document.getElementById('alert-container');
+        const tokenDisplay = document.getElementById('tokenDisplay');
+        const tokenContent = document.getElementById('tokenContent');
+        const userInfo = document.getElementById('userInfo');
+
+        let currentToken = '';
+
+        // Manejar el envío del formulario
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Deshabilitar botón y mostrar loading
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="loading"></span>Iniciando sesión...';
+            
+            // Limpiar alertas previas
+            alertContainer.innerHTML = '';
+            tokenDisplay.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Login exitoso
+                    currentToken = data.access_token;
+                    showAlert('¡Autenticación exitosa! Token generado correctamente.', 'success');
+                    displayToken(data);
+                    loginForm.reset();
+                } else {
+                    // Error de autenticación
+                    showAlert(data.error || 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.', 'error');
+                }
+            } catch (error) {
+                showAlert('Error de conexión. Asegúrate de que el servidor Laravel esté ejecutándose en ' + API_URL, 'error');
+                console.error('Error:', error);
+            } finally {
+                // Rehabilitar botón
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Iniciar Sesión';
+            }
+        });
+
+        // Mostrar alerta
+        function showAlert(message, type) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Mostrar token y datos del usuario
+        function displayToken(data) {
+            tokenContent.textContent = data.access_token;
+            
+            // Mostrar información del usuario
+            userInfo.innerHTML = `
+                <div class="user-info-item">
+                    <span class="user-info-label">Usuario</span>
+                    <span class="user-info-value">${data.user.name}</span>
+                </div>
+                <div class="user-info-item">
+                    <span class="user-info-label">Email</span>
+                    <span class="user-info-value">${data.user.email}</span>
+                </div>
+                <div class="user-info-item">
+                    <span class="user-info-label">ID</span>
+                    <span class="user-info-value">#${data.user.id}</span>
+                </div>
+                <div class="user-info-item">
+                    <span class="user-info-label">Tipo de Token</span>
+                    <span class="user-info-value">${data.token_type}</span>
+                </div>
+            `;
+            
+            tokenDisplay.style.display = 'block';
+        }
+
+        // Copiar token al portapapeles
+        function copyToken() {
+            navigator.clipboard.writeText(currentToken).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✓ Token copiado';
+                copyBtn.style.color = 'var(--success)';
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                showAlert('Error al copiar el token', 'error');
+            });
+        }
+
+        // Auto-rellenar credenciales de prueba (solo para desarrollo)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                document.getElementById('email').value = 'user@test.com';
+                document.getElementById('password').value = '123456';
+            }
+        });
+    </script>
+</body>
+</html>
