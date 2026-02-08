@@ -3,569 +3,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JWT Auth - Sistema de Autenticación</title>
+    <title>JWT Security Lab - Sistema de Autenticación Avanzado</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #161616;
-            --bg-tertiary: #1f1f1f;
-            --accent: #00ff9f;
-            --accent-dim: #00cc7f;
-            --text-primary: #ffffff;
-            --text-secondary: #a3a3a3;
-            --border: #2a2a2a;
-            --error: #ff4757;
-            --success: #00ff9f;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Decorative background elements */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            right: -20%;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(0, 255, 159, 0.03) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: pulse 8s ease-in-out infinite;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            left: -10%;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(0, 255, 159, 0.02) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: pulse 10s ease-in-out infinite reverse;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 48px;
-            animation: fadeInDown 0.6s ease-out;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--accent);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 20px;
-            color: var(--bg-primary);
-        }
-
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px;
-            animation: fadeInUp 0.6s ease-out 0.2s both;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            letter-spacing: 0.01em;
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.2s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: var(--bg-primary);
-        }
-
-        input::placeholder {
-            color: #4a4a4a;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px 24px;
-            background: var(--accent);
-            color: var(--bg-primary);
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'DM Sans', sans-serif;
-            letter-spacing: 0.01em;
-        }
-
-        .btn:hover {
-            background: var(--accent-dim);
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            background: #2a2a2a;
-            color: #666;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .alert {
-            padding: 14px 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            line-height: 1.5;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .alert-error {
-            background: rgba(255, 71, 87, 0.1);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            color: var(--error);
-        }
-
-        .alert-success {
-            background: rgba(0, 255, 159, 0.1);
-            border: 1px solid rgba(0, 255, 159, 0.3);
-            color: var(--success);
-        }
-
-        .token-display {
-            margin-top: 24px;
-            padding: 20px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            animation: fadeInUp 0.4s ease-out;
-        }
-
-        .token-display h3 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .token-content {
-            background: var(--bg-primary);
-            padding: 16px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12px;
-            color: var(--accent);
-            word-break: break-all;
-            line-height: 1.6;
-            position: relative;
-        }
-
-        .copy-btn {
-            margin-top: 12px;
-            width: 100%;
-            padding: 10px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'DM Sans', sans-serif;
-        }
-
-        .copy-btn:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border-color: var(--accent);
-        }
-
-        .user-info {
-            margin-top: 16px;
-            padding: 16px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-        }
-
-        .user-info-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .user-info-item:last-child {
-            border-bottom: none;
-        }
-
-        .user-info-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .user-info-value {
-            font-size: 13px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .test-credentials {
-            margin-top: 24px;
-            padding: 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .test-credentials h4 {
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-        }
-
-        .test-credentials code {
-            color: var(--accent);
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--bg-primary);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 12px;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--bg-primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 640px) {
-            .card {
-                padding: 28px 24px;
-            }
-
-            .header {
-                margin-bottom: 32px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sometype+Mono:wght@400;500;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">
-                <div class="logo-icon">JWT</div>
-                <span class="logo-text">Auth System</span>
+                <span class="logo-text">JWT Auth System</span>
             </div>
-            <p>Sistema de autenticación seguro con JSON Web Tokens</p>
         </div>
 
-        <div class="card">
-            <div id="alert-container"></div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('auth')">Autenticación</button>
+            <button class="tab" onclick="switchTab('decoder')">Decodificador JWT</button>
+        </div>
 
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        placeholder="usuario@ejemplo.com"
-                        required
-                    >
+        <!-- Tab 1: Autenticación -->
+        <div id="auth-tab" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <h2 class="card-title">Iniciar Sesión</h2>
+                    <p class="card-description">Autentica tus credenciales para obtener un token JWT</p>
+
+                    <div id="auth-alert-container"></div>
+
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="usuario@ejemplo.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="••••••••"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit" class="btn" id="loginBtn">
+                            Autenticar
+                        </button>
+                    </form>
+
+                    <div class="credentials-box">
+                        <div class="credentials-title">Credenciales de Prueba</div>
+                        <div class="credential-item">
+                            <span class="credential-label">Email:</span>
+                            <span class="credential-value">user@test.com</span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">Contraseña:</span>
+                            <span class="credential-value">123456</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="••••••••"
-                        required
-                    >
+                <div class="card">
+                    <h2 class="card-title">Token JWT Generado</h2>
+                    <p class="card-description">Token de acceso firmado digitalmente</p>
+
+                    <div id="tokenDisplay" style="display: none;">
+                        <div class="token-display">
+                            <label>Access Token</label>
+                            <div class="token-content" id="tokenContent"></div>
+                        </div>
+
+                        <div style="margin-top: 16px; display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="copyToken()" style="flex: 1;">
+                                Copiar Token
+                            </button>
+                            <button class="btn btn-secondary" onclick="decodeCurrentToken()" style="flex: 1;">
+                                Decodificar
+                            </button>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="userIdStat">-</div>
+                                <div class="stat-label">User ID</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="tokenTypeStat">-</div>
+                                <div class="stat-label">Token Type</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="tokenLengthStat">0</div>
+                                <div class="stat-label">Token Length</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="noTokenMessage" class="security-box" style="margin-top: 20px;">
+                        <div class="security-box-title">Sin token activo</div>
+                        <div class="security-box-content">
+                            Inicia sesión primero para generar un token JWT válido.
+                        </div>
+                    </div>
                 </div>
-
-                <button type="submit" class="btn" id="loginBtn">
-                    Iniciar Sesión
-                </button>
-            </form>
-
-            <div class="test-credentials">
-                <h4>Credenciales de prueba</h4>
-                <p>Email: <code>user@test.com</code></p>
-                <p>Contraseña: <code>123456</code></p>
             </div>
+        </div>
 
-            <div id="tokenDisplay" style="display: none;">
-                <div class="token-display">
-                    <h3>Token JWT Generado</h3>
-                    <div class="token-content" id="tokenContent"></div>
-                    <button class="copy-btn" onclick="copyToken()">
-                        📋 Copiar Token
+        <!-- Tab 2: Decodificador JWT -->
+        <div id="decoder-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <h2 class="card-title">Decodificador de Tokens</h2>
+                    <p class="card-description">Analiza la estructura de cualquier token JWT</p>
+
+                    <div class="form-group">
+                        <label for="tokenInput">Token JWT</label>
+                        <textarea
+                            id="tokenInput"
+                            placeholder="Pega aquí un token JWT para decodificar..."
+                        ></textarea>
+                    </div>
+
+                    <button class="btn" onclick="decodeToken()">
+                        Decodificar Token
                     </button>
+
+                    <div id="decoder-alert"></div>
                 </div>
 
-                <div class="user-info" id="userInfo"></div>
+                <div class="card">
+                    <h2 class="card-title">Partes del Token</h2>
+                    <p class="card-description">Un JWT se compone de tres partes separadas por puntos</p>
+
+                    <div id="jwtParts" style="display: none;">
+                        <div class="jwt-parts">
+                            <div class="jwt-part header">
+                                <div class="jwt-part-title">Header</div>
+                                <div class="jwt-part-content" id="headerPart"></div>
+                            </div>
+                            <div class="jwt-part payload">
+                                <div class="jwt-part-title">Payload</div>
+                                <div class="jwt-part-content" id="payloadPart"></div>
+                            </div>
+                            <div class="jwt-part signature">
+                                <div class="jwt-part-title">Signature</div>
+                                <div class="jwt-part-content" id="signaturePart"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px;">
+                            <label>Header Decodificado (Base64)</label>
+                            <div class="code-block" id="headerDecoded"></div>
+                        </div>
+
+                        <div style="margin-top: 16px;">
+                            <label>Payload Decodificado (Base64)</label>
+                            <div class="code-block" id="payloadDecoded"></div>
+                        </div>
+
+                        <div class="security-box" style="margin-top: 20px;">
+                            <div class="security-box-title">Sobre la Firma</div>
+                            <div class="security-box-content">
+                                La firma (signature) NO se puede decodificar porque es un hash criptográfico.
+                                Se genera usando HMAC-SHA256 con una clave secreta que solo conoce el servidor.
+                                Esto garantiza que el token no ha sido modificado.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="noDecodedToken" class="security-box">
+                        <div class="security-box-title">Estructura JWT</div>
+                        <div class="security-box-content">
+                            Un token JWT tiene el formato: <code>header.payload.signature</code><br><br>
+                            • <strong>Header:</strong> Tipo de token y algoritmo de firma<br>
+                            • <strong>Payload:</strong> Datos del usuario (claims)<br>
+                            • <strong>Signature:</strong> Firma criptográfica para validación
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuración de la API - CAMBIAR ESTO A TU URL DE LARAVEL
+        //============================================
+        //CONFIGURACIÓN Y ESTADO
+        //============================================
         const API_URL = 'http://localhost:8000/api';
-
-        const loginForm = document.getElementById('loginForm');
-        const loginBtn = document.getElementById('loginBtn');
-        const alertContainer = document.getElementById('alert-container');
-        const tokenDisplay = document.getElementById('tokenDisplay');
-        const tokenContent = document.getElementById('tokenContent');
-        const userInfo = document.getElementById('userInfo');
-
         let currentToken = '';
 
-        // Manejar el envío del formulario
-        loginForm.addEventListener('submit', async (e) => {
+        //============================================
+        //LÓGICA JWT
+        //============================================
+
+        //Decodifico un token JWT separándolo en sus tres partes
+        function parseJWT(token) {
+            //Verifico que el token tenga las 3 partes requeridas
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                throw new Error('Token JWT inválido. Debe tener 3 partes separadas por puntos.');
+            }
+            return parts;
+        }
+
+        //Decodifico una parte del token de Base64 a JSON
+        function decodeJWTPart(base64String) {
+            //Reemplazo caracteres URL-safe por caracteres Base64 estándar
+            const normalized = base64String.replace(/-/g, '+').replace(/_/g, '/');
+            //Decodifico de Base64 y convierto a objeto JSON
+            return JSON.parse(atob(normalized));
+        }
+
+        //Proceso completo de decodificación del token
+        function decodeJWTToken(token) {
+            //Separo el token en sus partes
+            const [headerB64, payloadB64, signature] = parseJWT(token);
+
+            //Decodifico header y payload
+            const header = decodeJWTPart(headerB64);
+            const payload = decodeJWTPart(payloadB64);
+
+            //Retorno toda la información estructurada
+            return {
+                parts: { headerB64, payloadB64, signature },
+                decoded: { header, payload }
+            };
+        }
+
+        //Copio el token actual al portapapeles
+        function copyTokenToClipboard() {
+            return navigator.clipboard.writeText(currentToken);
+        }
+
+        //============================================
+        //LÓGICA DE API
+        //============================================
+
+        //Realizo la petición de login al servidor
+        async function authenticateUser(email, password) {
+            //Envío credenciales al endpoint de login
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            //Obtengo la respuesta en formato JSON
+            const data = await response.json();
+
+            //Retorno tanto la respuesta como los datos
+            return { response, data };
+        }
+
+        //============================================
+        //MANIPULACIÓN DEL DOM
+        //============================================
+
+        //Cambio entre pestañas de la interfaz
+        function switchTab(tabName) {
+            //Remuevo la clase active de todas las pestañas
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            //Añado la clase active a la pestaña clickeada
+            event.target.classList.add('active');
+
+            //Oculto todos los contenidos de pestañas
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            //Muestro el contenido de la pestaña seleccionada
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        //Muestro un mensaje de alerta en la sección de autenticación
+        function showAuthAlert(message, type) {
+            //Obtengo el contenedor de alertas
+            const alertContainer = document.getElementById('auth-alert-container');
+            //Inserto el HTML de la alerta con el tipo correspondiente
+            alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        //Muestro el token en la interfaz después del login
+        function displayToken(data) {
+            //Muestro el contenedor del token
+            document.getElementById('tokenDisplay').style.display = 'block';
+            //Oculto el mensaje de "sin token"
+            document.getElementById('noTokenMessage').style.display = 'none';
+            //Inserto el token en el elemento correspondiente
+            document.getElementById('tokenContent').textContent = data.access_token;
+
+            //Actualizo las estadísticas del token
+            document.getElementById('userIdStat').textContent = data.user.id;
+            document.getElementById('tokenTypeStat').textContent = data.token_type.toUpperCase();
+            document.getElementById('tokenLengthStat').textContent = data.access_token.length;
+        }
+
+        //Muestro el token decodificado en la interfaz
+        function displayDecodedToken(parts, decoded) {
+            //Muestro las partes del token en Base64
+            document.getElementById('headerPart').textContent = parts.headerB64;
+            document.getElementById('payloadPart').textContent = parts.payloadB64;
+            document.getElementById('signaturePart').textContent = parts.signature;
+
+            //Muestro el contenido decodificado con formato JSON
+            document.getElementById('headerDecoded').innerHTML = '<code>' + JSON.stringify(decoded.header, null, 2) + '</code>';
+            document.getElementById('payloadDecoded').innerHTML = '<code>' + JSON.stringify(decoded.payload, null, 2) + '</code>';
+
+            //Muestro la sección de partes JWT
+            document.getElementById('jwtParts').style.display = 'block';
+            //Oculto el mensaje de "sin token decodificado"
+            document.getElementById('noDecodedToken').style.display = 'none';
+        }
+
+        //Muestro el estado del botón de login mientras carga
+        function setLoginButtonLoading(isLoading) {
+            //Obtengo el botón de login
+            const loginBtn = document.getElementById('loginBtn');
+
+            if (isLoading) {
+                //Deshabilito el botón
+                loginBtn.disabled = true;
+                //Cambio el texto a estado de carga
+                loginBtn.innerHTML = '<span class="loading"></span>Autenticando...';
+            } else {
+                //Habilito el botón
+                loginBtn.disabled = false;
+                //Restauro el texto original
+                loginBtn.innerHTML = 'Autenticar';
+            }
+        }
+
+        //Limpio el contenedor de alertas del decoder
+        function clearDecoderAlert() {
+            document.getElementById('decoder-alert').innerHTML = '';
+        }
+
+        //Muestro una alerta en el decoder
+        function showDecoderAlert(message, type) {
+            //Obtengo el contenedor de alertas del decoder
+            const alertDiv = document.getElementById('decoder-alert');
+            //Inserto el mensaje de alerta
+            alertDiv.innerHTML = `<div class="alert alert-${type}" style="margin-top: 20px;">${message}</div>`;
+        }
+
+        //Oculto la sección de token decodificado
+        function hideDecodedTokenDisplay() {
+            //Oculto las partes del JWT
+            document.getElementById('jwtParts').style.display = 'none';
+            //Muestro el mensaje de "sin token"
+            document.getElementById('noDecodedToken').style.display = 'block';
+        }
+
+        //============================================
+        //MANEJADORES DE EVENTOS
+        //============================================
+
+        //Manejo el envío del formulario de login
+        async function handleLoginSubmit(e) {
+            //Prevengo el comportamiento por defecto del formulario
             e.preventDefault();
-            
+
+            //Obtengo los valores del formulario
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const alertContainer = document.getElementById('auth-alert-container');
 
-            // Deshabilitar botón y mostrar loading
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="loading"></span>Iniciando sesión...';
-            
-            // Limpiar alertas previas
+            //Muestro el estado de carga
+            setLoginButtonLoading(true);
+            //Limpio alertas anteriores
             alertContainer.innerHTML = '';
-            tokenDisplay.style.display = 'none';
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
+                //Realizo la autenticación
+                const { response, data } = await authenticateUser(email, password);
 
                 if (response.ok) {
-                    // Login exitoso
+                    //Guardo el token en la variable global
                     currentToken = data.access_token;
-                    showAlert('¡Autenticación exitosa! Token generado correctamente.', 'success');
+                    //Muestro mensaje de éxito
+                    showAuthAlert('Autenticación exitosa. Token JWT generado correctamente.', 'success');
+                    //Muestro el token en la interfaz
                     displayToken(data);
-                    loginForm.reset();
+                    //Limpio el formulario
+                    document.getElementById('loginForm').reset();
                 } else {
-                    // Error de autenticación
-                    showAlert(data.error || 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.', 'error');
+                    //Muestro el error recibido del servidor
+                    showAuthAlert((data.error || 'Credenciales incorrectas. Verifica tu email y contraseña.'), 'error');
                 }
             } catch (error) {
-                showAlert('Error de conexión. Asegúrate de que el servidor Laravel esté ejecutándose en ' + API_URL, 'error');
+                //Muestro error de conexión
+                showAuthAlert('Error de conexión. Asegúrate de que el servidor Laravel esté ejecutándose en ' + API_URL, 'error');
+                //Registro el error en consola
                 console.error('Error:', error);
             } finally {
-                // Rehabilitar botón
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = 'Iniciar Sesión';
+                //Restauro el estado del botón
+                setLoginButtonLoading(false);
             }
-        });
-
-        // Mostrar alerta
-        function showAlert(message, type) {
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type}">
-                    ${message}
-                </div>
-            `;
         }
 
-        // Mostrar token y datos del usuario
-        function displayToken(data) {
-            tokenContent.textContent = data.access_token;
-            
-            // Mostrar información del usuario
-            userInfo.innerHTML = `
-                <div class="user-info-item">
-                    <span class="user-info-label">Usuario</span>
-                    <span class="user-info-value">${data.user.name}</span>
-                </div>
-                <div class="user-info-item">
-                    <span class="user-info-label">Email</span>
-                    <span class="user-info-value">${data.user.email}</span>
-                </div>
-                <div class="user-info-item">
-                    <span class="user-info-label">ID</span>
-                    <span class="user-info-value">#${data.user.id}</span>
-                </div>
-                <div class="user-info-item">
-                    <span class="user-info-label">Tipo de Token</span>
-                    <span class="user-info-value">${data.token_type}</span>
-                </div>
-            `;
-            
-            tokenDisplay.style.display = 'block';
-        }
-
-        // Copiar token al portapapeles
+        //Manejo la copia del token al portapapeles
         function copyToken() {
-            navigator.clipboard.writeText(currentToken).then(() => {
-                const copyBtn = document.querySelector('.copy-btn');
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = '✓ Token copiado';
-                copyBtn.style.color = 'var(--success)';
-                
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                    copyBtn.style.color = '';
-                }, 2000);
-            }).catch(err => {
-                showAlert('Error al copiar el token', 'error');
-            });
+            //Copio el token
+            copyTokenToClipboard()
+                .then(() => {
+                    //Muestro mensaje de éxito
+                    showAuthAlert('Token copiado al portapapeles', 'success');
+                })
+                .catch(err => {
+                    //Muestro mensaje de error
+                    showAuthAlert('Error al copiar el token', 'error');
+                });
         }
 
-        // Auto-rellenar credenciales de prueba (solo para desarrollo)
-        document.addEventListener('keydown', (e) => {
+        //Decodifico el token actual y cambio a la pestaña decoder
+        function decodeCurrentToken() {
+            //Verifico que exista un token
+            if (!currentToken) {
+                showAuthAlert('No hay token para decodificar. Inicia sesión primero.', 'warning');
+                return;
+            }
+
+            //Inserto el token en el input del decoder
+            document.getElementById('tokenInput').value = currentToken;
+            //Cambio a la pestaña de decoder
+            switchTab('decoder');
+            //Marco la pestaña como activa
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            //Decodifico el token después de un breve delay
+            setTimeout(() => decodeToken(), 100);
+        }
+
+        //Decodifico el token ingresado manualmente
+        function decodeToken() {
+            //Obtengo el token del input
+            const token = document.getElementById('tokenInput').value.trim();
+
+            //Verifico que haya un token
+            if (!token) {
+                showDecoderAlert('Por favor, ingresa un token JWT', 'warning');
+                return;
+            }
+
+            try {
+                //Decodifico el token
+                const { parts, decoded } = decodeJWTToken(token);
+                //Muestro el token decodificado
+                displayDecodedToken(parts, decoded);
+                //Muestro mensaje de éxito
+                showDecoderAlert('Token decodificado correctamente', 'success');
+            } catch (error) {
+                //Muestro el error
+                showDecoderAlert(`Error: ${error.message}`, 'error');
+                //Oculto la sección de token decodificado
+                hideDecodedTokenDisplay();
+            }
+        }
+
+        //Manejo el atajo de teclado para autocompletar credenciales de prueba
+        function handleTestCredentialsShortcut(e) {
+            //Verifico si se presionó Ctrl+T
             if (e.ctrlKey && e.key === 't') {
+                //Prevengo el comportamiento por defecto
                 e.preventDefault();
+                //Relleno los campos con credenciales de prueba
                 document.getElementById('email').value = 'user@test.com';
                 document.getElementById('password').value = '123456';
             }
-        });
+        }
+
+        //============================================
+        //INICIALIZACIÓN
+        //============================================
+
+        //Registro el evento de envío del formulario
+        const loginForm = document.getElementById('loginForm');
+        loginForm.addEventListener('submit', handleLoginSubmit);
+
+        //Registro el atajo de teclado global
+        document.addEventListener('keydown', handleTestCredentialsShortcut);
     </script>
 </body>
 </html>
